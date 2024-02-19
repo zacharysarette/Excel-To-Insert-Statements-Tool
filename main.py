@@ -20,7 +20,7 @@ def main(page: Page):
     page.window_left = 400
     page.window_top = 200
     page.window_width = 680
-    page.window_height = 300
+    page.window_height = 400
     page.scroll = "adaptive"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.MainAxisAlignment.CENTER
@@ -48,6 +48,20 @@ def main(page: Page):
 
     page.snack_bar = ft.SnackBar(content=snack_bar_text)
 
+    def clear_output():
+        output_view.value = ""
+
+    def load_file():
+        global path_to_file
+        sheets = engine.get_sheets(path_to_file)
+        radio_group_sheets.content = ft.Column(get_radio_buttons(sheets))
+        radio_group_sheets.value = sheets[0]
+
+    def reload():
+        load_file()
+        clear_output()
+        page.update()
+
     def file_picker_result(e: FilePickerResultEvent):
         global path_to_file
         button_select_excel.current.disabled = True if e.files is None else False
@@ -59,9 +73,7 @@ def main(page: Page):
                 prog_bars[f.name] = prog
                 files.current.controls.append(Row([prog, Text(f.name)]))
                 path_to_file = f.path
-                sheets = engine.get_sheets(path_to_file)
-                radio_group_sheets.content = ft.Column(get_radio_buttons(sheets))
-                radio_group_sheets.value = sheets[0]
+                load_file()
         page.update()
 
     def process_excel(e):
@@ -79,12 +91,18 @@ def main(page: Page):
 
     def select_file():
         file_picker.pick_files(allow_multiple=False)
-        output_view.value = ""
+        clear_output()
 
     button_select_excel = ElevatedButton(
         "Select Input Excel file...",
         icon=icons.FOLDER_OPEN,
         on_click=lambda _: select_file(),
+    )
+
+    button_refresh = ElevatedButton(
+        "Reload",
+        icon=icons.REFRESH_OUTLINED,
+        on_click=lambda _: reload(),
     )
 
     # hide dialog in a overlay
@@ -94,6 +112,7 @@ def main(page: Page):
         Row(
             controls=[
                 button_select_excel,
+                button_refresh,
                 Column(ref=files),
             ]
         ),
