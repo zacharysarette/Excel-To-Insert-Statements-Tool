@@ -11,6 +11,12 @@ def get_sheets(file_path):
     db = xl.readxl(fn=file_path)
     return db.ws_names
 
+def parse_sheet_name(name):
+    if "." in name:
+        schema = name.split(".")[0]
+        table = name.split(".")[1]
+        return f"`{schema}`.`{table}`"
+    return f"`{name}`"
 
 def run(file_name, sheet_name):
     db = xl.readxl(fn=file_name)
@@ -23,9 +29,9 @@ def run(file_name, sheet_name):
         for d in data:
             data_string += "'" + str(d) + "', "
         row_list.append(
-            "INSERT INTO `"
-            + sheet_name
-            + "` ("
+            "INSERT INTO "
+            + parse_sheet_name(sheet_name)
+            + " ("
             + list_to_string(fields)
             + ") VALUES ("
             + data_string.rstrip(", ")
